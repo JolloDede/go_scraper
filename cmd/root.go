@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/JolloDede/go_scraper/src"
 	"github.com/spf13/cobra"
 )
 
@@ -18,11 +19,15 @@ var rootCmd = &cobra.Command{
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(args)
-		if args[0] == "url" {
-			fmt.Println(url)
+		verbose := cmd.Flag("verbose").Value.String() == "true"
+		dic := src.HandleUrl(url, bool(verbose))
+
+		for key, value := range dic {
+			// if value >= 400 && value < 500 {
+			// 	fmt.Println(key, " ", value)
+			// }
+			fmt.Println("Key:", key, "Value:", value)
 		}
-		fmt.Println("Hello")
 	},
 }
 
@@ -45,6 +50,8 @@ func init() {
 	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.go_scraper.yaml)")
 	rootCmd.PersistentFlags().StringVarP(&url, "url", "u", "http://localhost:80", "Root of the website you whant to check.")
 	rootCmd.MarkFlagRequired("url")
+
+	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "When recursively Checking the Website.")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
