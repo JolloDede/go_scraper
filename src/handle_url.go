@@ -95,11 +95,24 @@ func (s *UrlScraper) traverseRec(node *html.Node) {
 			for i := 0; i < len(n.Attr); i++ {
 				if n.Attr[i].Key == "href" {
 					if n.Attr[i].Val[0] == '/' || (len(n.Attr[i].Val) > 4 && n.Attr[i].Val[0:4] == "http") {
-						s.unsearched = append(s.unsearched, n.Attr[i].Val)
+						if !s.pathAlreadySearched(n.Attr[i].Val) {
+							s.unsearched = append(s.unsearched, n.Attr[i].Val)
+						}
 					}
 				}
 			}
 		}
+	}
+}
+
+func (s *UrlScraper) pathAlreadySearched(p string) bool {
+	if p[0] == '/' {
+		p = s.baseUrl + p
+	}
+	if s.searched[p] == 0 {
+		return false
+	} else {
+		return true
 	}
 }
 
