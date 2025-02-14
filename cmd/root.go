@@ -26,7 +26,7 @@ var rootCmd = &cobra.Command{
 			// if value >= 400 && value < 500 {
 			// 	fmt.Println(key, " ", value)
 			// }
-			fmt.Println("Key:", key, "Value:", value)
+			fmt.Println("Key: ", key, "Value: ", value)
 		}
 	},
 }
