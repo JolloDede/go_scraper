@@ -18,6 +18,7 @@ func HandleUrl(url string, recursiv bool) map[string]int {
 		for len(scraper.unsearched) != 0 {
 			var x string
 			x, scraper.unsearched = scraper.unsearched[len(scraper.unsearched)-1], scraper.unsearched[:len(scraper.unsearched)-1]
+			fmt.Println("Check URL: ", x)
 			scraper.checkUrl(x)
 		}
 	}
@@ -26,7 +27,8 @@ func HandleUrl(url string, recursiv bool) map[string]int {
 }
 
 type UrlScraper struct {
-	baseUrl    string
+	scheme     string
+	host       string
 	searched   map[string]int
 	unsearched []string
 }
@@ -42,23 +44,19 @@ func NewUrlScraper(u string) *UrlScraper {
 	res.Path = ""
 	res.RawQuery = ""
 	res.RawFragment = ""
-	return &UrlScraper{baseUrl: res.String(), searched: make(map[string]int, 0), unsearched: []string{p}}
+	return &UrlScraper{scheme: res.Scheme, host: res.Host, searched: make(map[string]int, 0), unsearched: []string{p}}
 }
 
 func (s *UrlScraper) checkUrl(u string) {
-	if u[0] == '/' {
-		u = s.baseUrl + u
-	}
 	res, err := http.Get(u)
 
-	fmt.Println(u)
-
 	if err != nil {
+		s.searched[u] = 404
 		return
 	}
 	defer res.Body.Close()
 
-	if sameBaseUrl(s.baseUrl, u) {
+	if sameHost(s.scheme+"://"+s.host, u) {
 		s.parseBody(res.Body)
 	}
 
@@ -94,21 +92,35 @@ func (s *UrlScraper) traverseRec(node *html.Node) {
 		if n.Type == html.ElementNode && n.Data == "a" {
 			for i := 0; i < len(n.Attr); i++ {
 				if n.Attr[i].Key == "href" {
-					if n.Attr[i].Val[0] == '/' || (len(n.Attr[i].Val) > 4 && n.Attr[i].Val[0:4] == "http") {
-						if !s.pathAlreadySearched(n.Attr[i].Val) {
-							s.unsearched = append(s.unsearched, n.Attr[i].Val)
-						}
-					}
+					s.addToUnsearched(n.Attr[i].Val)
 				}
 			}
 		}
 	}
 }
 
-func (s *UrlScraper) pathAlreadySearched(p string) bool {
-	if p[0] == '/' {
-		p = s.baseUrl + p
+func (s *UrlScraper) addToUnsearched(p string) {
+	u, err := url.Parse(p)
+
+	if err != nil {
+		return
 	}
+	if !slices.Contains([]string{"http", "https", ""}, u.Scheme) {
+		return
+	}
+
+	if u.Host == "" {
+		// remove the // infront of the url
+		u.Scheme = s.scheme
+		u.Host = s.host
+	}
+
+	if !s.pathAlreadySearched(u.String()) {
+		s.unsearched = append(s.unsearched, u.String())
+	}
+}
+
+func (s *UrlScraper) pathAlreadySearched(p string) bool {
 	if s.searched[p] == 0 {
 		return false
 	} else {
@@ -116,7 +128,7 @@ func (s *UrlScraper) pathAlreadySearched(p string) bool {
 	}
 }
 
-func sameBaseUrl(u1 string, u2 string) bool {
+func sameHost(u1 string, u2 string) bool {
 	r1, e1 := url.Parse(u1)
 	r2, e2 := url.Parse(u2)
 
@@ -127,15 +139,7 @@ func sameBaseUrl(u1 string, u2 string) bool {
 		panic(e2)
 	}
 
-	r1.Path = ""
-	r1.RawQuery = ""
-	r1.RawFragment = ""
-
-	r2.Path = ""
-	r2.RawQuery = ""
-	r2.RawFragment = ""
-
-	if r1.String() == r2.String() {
+	if r1.Host == r2.Host {
 		return true
 	} else {
 		return false
