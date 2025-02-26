@@ -11,6 +11,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var Reset = "\033[0m"
+var Red = "\033[31m"
+var Green = "\033[32m"
+var Yellow = "\033[33m"
+var Blue = "\033[34m"
+var Magenta = "\033[35m"
+var Cyan = "\033[36m"
+var Gray = "\033[37m"
+var White = "\033[97m"
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "go_scraper",
@@ -23,10 +33,14 @@ var rootCmd = &cobra.Command{
 		dic := src.HandleUrl(url, bool(verbose))
 
 		for key, value := range dic {
-			// if value >= 400 && value < 500 {
-			// 	fmt.Println(key, " ", value)
-			// }
-			fmt.Println("Key: ", key, "Value: ", value)
+			if value.StatusCode >= 400 && value.StatusCode < 500 {
+				fmt.Print(Red)
+			}
+			if value.StatusCode >= 200 && value.StatusCode < 300 {
+				fmt.Print(Green)
+			}
+			fmt.Println("On ", value.Link.Url, "Key: ", key, "Value: ", value.StatusCode)
+			fmt.Print(Reset)
 		}
 	},
 }

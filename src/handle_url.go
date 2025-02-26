@@ -13,7 +13,7 @@ import (
 func HandleUrl(url string, recursiv bool) map[string]Searched {
 	scraper := NewUrlScraper(url)
 
-	scraper.checkUrl(Link{url: url, link: url})
+	scraper.checkUrl(Link{Url: url, link: url})
 	if recursiv {
 		for len(scraper.unsearched) != 0 {
 			var x Link
@@ -23,24 +23,24 @@ func HandleUrl(url string, recursiv bool) map[string]Searched {
 		}
 	}
 
-	return scraper.searched
+	return scraper.searchedMap
 }
 
 type Link struct {
-	url  string
+	Url  string
 	link string
 }
 
 type Searched struct {
-	path       string
-	statusCode int
+	Link       Link
+	StatusCode int
 }
 
 type UrlScraper struct {
-	scheme     string
-	host       string
-	searched   map[string]Searched
-	unsearched []Link
+	scheme      string
+	host        string
+	searchedMap map[string]Searched
+	unsearched  []Link
 }
 
 func NewUrlScraper(u string) *UrlScraper {
@@ -54,14 +54,14 @@ func NewUrlScraper(u string) *UrlScraper {
 	res.Path = ""
 	res.RawQuery = ""
 	res.RawFragment = ""
-	return &UrlScraper{scheme: res.Scheme, host: res.Host, searched: make(map[string]Searched, 0), unsearched: []Link{{url: p, link: p}}}
+	return &UrlScraper{scheme: res.Scheme, host: res.Host, searchedMap: make(map[string]Searched, 0), unsearched: []Link{{Url: p, link: p}}}
 }
 
 func (s *UrlScraper) checkUrl(u Link) {
 	res, err := http.Get(u.link)
 
 	if err != nil {
-		s.searched[u.link] = Searched{path: u.url, statusCode: 404}
+		s.searchedMap[u.link] = Searched{Link: u, StatusCode: 404}
 		return
 	}
 	defer res.Body.Close()
@@ -73,17 +73,17 @@ func (s *UrlScraper) checkUrl(u Link) {
 	if slices.Contains([]int{300, 303}, res.StatusCode) {
 		locations := res.Header["Location"]
 		for i := 0; i < len(locations); i++ {
-			s.checkUrl(Link{url: u.link, link: locations[i]})
+			s.checkUrl(Link{Url: u.link, link: locations[i]})
 		}
 	}
 
 	if slices.Contains([]int{301, 302, 305, 307, 308}, res.StatusCode) {
 		location := res.Request.Response.Header["Location"]
-		s.checkUrl(Link{url: u.link, link: location[0]})
+		s.checkUrl(Link{Url: u.link, link: location[0]})
 	}
 
-	if s.searched[u.url].statusCode == 0 {
-		s.searched[u.url] = Searched{path: u.url, statusCode: res.StatusCode}
+	if s.searchedMap[u.link].StatusCode == 0 {
+		s.searchedMap[u.link] = Searched{Link: u, StatusCode: res.StatusCode}
 	}
 }
 
@@ -126,12 +126,12 @@ func (s *UrlScraper) addToUnsearched(cur string, p string) {
 	}
 
 	if !s.pathAlreadySearched(u.String()) {
-		s.unsearched = append(s.unsearched, Link{url: cur, link: u.String()})
+		s.unsearched = append(s.unsearched, Link{Url: cur, link: u.String()})
 	}
 }
 
 func (s *UrlScraper) pathAlreadySearched(p string) bool {
-	if s.searched[p].statusCode == 0 {
+	if s.searchedMap[p].StatusCode == 0 {
 		return false
 	} else {
 		return true
