@@ -13,12 +13,12 @@ import (
 func HandleUrl(url string, recursiv bool) map[string]Searched {
 	scraper := NewUrlScraper(url)
 
-	scraper.checkUrl(ToSearch{currentPath: url, linkUrl: url})
+	scraper.checkUrl(Link{url: url, link: url})
 	if recursiv {
 		for len(scraper.unsearched) != 0 {
-			var x ToSearch
+			var x Link
 			x, scraper.unsearched = scraper.unsearched[len(scraper.unsearched)-1], scraper.unsearched[:len(scraper.unsearched)-1]
-			fmt.Println("Check URL: ", x.linkUrl)
+			fmt.Println("Check URL: ", x.link)
 			scraper.checkUrl(x)
 		}
 	}
@@ -26,9 +26,9 @@ func HandleUrl(url string, recursiv bool) map[string]Searched {
 	return scraper.searched
 }
 
-type ToSearch struct {
-	currentPath string
-	linkUrl     string
+type Link struct {
+	url  string
+	link string
 }
 
 type Searched struct {
@@ -40,7 +40,7 @@ type UrlScraper struct {
 	scheme     string
 	host       string
 	searched   map[string]Searched
-	unsearched []ToSearch
+	unsearched []Link
 }
 
 func NewUrlScraper(u string) *UrlScraper {
@@ -54,36 +54,36 @@ func NewUrlScraper(u string) *UrlScraper {
 	res.Path = ""
 	res.RawQuery = ""
 	res.RawFragment = ""
-	return &UrlScraper{scheme: res.Scheme, host: res.Host, searched: make(map[string]Searched, 0), unsearched: []ToSearch{{currentPath: p, linkUrl: p}}}
+	return &UrlScraper{scheme: res.Scheme, host: res.Host, searched: make(map[string]Searched, 0), unsearched: []Link{{url: p, link: p}}}
 }
 
-func (s *UrlScraper) checkUrl(u ToSearch) {
-	res, err := http.Get(u.linkUrl)
+func (s *UrlScraper) checkUrl(u Link) {
+	res, err := http.Get(u.link)
 
 	if err != nil {
-		s.searched[u.linkUrl] = Searched{path: u.currentPath, statusCode: 404}
+		s.searched[u.link] = Searched{path: u.url, statusCode: 404}
 		return
 	}
 	defer res.Body.Close()
 
-	if sameHost(s.scheme+"://"+s.host, u.linkUrl) {
-		s.parseBody(u.linkUrl, res.Body)
+	if sameHost(s.scheme+"://"+s.host, u.link) {
+		s.parseBody(u.link, res.Body)
 	}
 
 	if slices.Contains([]int{300, 303}, res.StatusCode) {
 		locations := res.Header["Location"]
 		for i := 0; i < len(locations); i++ {
-			s.checkUrl(ToSearch{currentPath: u.linkUrl, linkUrl: locations[i]})
+			s.checkUrl(Link{url: u.link, link: locations[i]})
 		}
 	}
 
 	if slices.Contains([]int{301, 302, 305, 307, 308}, res.StatusCode) {
 		location := res.Request.Response.Header["Location"]
-		s.checkUrl(ToSearch{currentPath: u.linkUrl, linkUrl: location[0]})
+		s.checkUrl(Link{url: u.link, link: location[0]})
 	}
 
-	if s.searched[u.currentPath].statusCode == 0 {
-		s.searched[u.currentPath] = Searched{path: u.currentPath, statusCode: res.StatusCode}
+	if s.searched[u.url].statusCode == 0 {
+		s.searched[u.url] = Searched{path: u.url, statusCode: res.StatusCode}
 	}
 }
 
@@ -126,7 +126,7 @@ func (s *UrlScraper) addToUnsearched(cur string, p string) {
 	}
 
 	if !s.pathAlreadySearched(u.String()) {
-		s.unsearched = append(s.unsearched, ToSearch{currentPath: cur, linkUrl: u.String()})
+		s.unsearched = append(s.unsearched, Link{url: cur, link: u.String()})
 	}
 }
 
