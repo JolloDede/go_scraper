@@ -30,16 +30,16 @@ var rootCmd = &cobra.Command{
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
 		verbose := cmd.Flag("verbose").Value.String() == "true"
-		dic := src.HandleUrl(url, bool(verbose))
+		uMap := src.HandleUrl(url, bool(verbose))
 
-		for key, value := range dic {
+		for _, value := range uMap {
 			if value.StatusCode >= 400 && value.StatusCode < 500 {
 				fmt.Print(Red)
 			}
 			if value.StatusCode >= 200 && value.StatusCode < 300 {
 				fmt.Print(Green)
 			}
-			fmt.Println("On ", value.Link.Url, "Key: ", key, "Value: ", value.StatusCode)
+			fmt.Println("On ", value.Link.Url, "Link Text: ", value.Link.Content, "Value: ", value.StatusCode)
 			fmt.Print(Reset)
 		}
 	},

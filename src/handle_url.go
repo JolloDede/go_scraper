@@ -27,8 +27,9 @@ func HandleUrl(url string, recursiv bool) map[string]Searched {
 }
 
 type Link struct {
-	Url  string
-	link string
+	Url     string
+	link    string
+	Content string
 }
 
 type Searched struct {
@@ -102,15 +103,19 @@ func (s *UrlScraper) traverseRec(cur string, node *html.Node) {
 		if n.Type == html.ElementNode && n.Data == "a" {
 			for i := 0; i < len(n.Attr); i++ {
 				if n.Attr[i].Key == "href" {
-					s.addToUnsearched(cur, n.Attr[i].Val)
+					content := ""
+					if n.FirstChild != nil {
+						content = n.FirstChild.Data
+					}
+					s.addToUnsearched(Link{Url: cur, link: n.Attr[i].Val, Content: content})
 				}
 			}
 		}
 	}
 }
 
-func (s *UrlScraper) addToUnsearched(cur string, p string) {
-	u, err := url.Parse(p)
+func (s *UrlScraper) addToUnsearched(link Link) {
+	u, err := url.Parse(link.link)
 
 	if err != nil {
 		return
@@ -126,7 +131,7 @@ func (s *UrlScraper) addToUnsearched(cur string, p string) {
 	}
 
 	if !s.pathAlreadySearched(u.String()) {
-		s.unsearched = append(s.unsearched, Link{Url: cur, link: u.String()})
+		s.unsearched = append(s.unsearched, Link{Url: link.Url, link: u.String(), Content: link.Content})
 	}
 }
 
