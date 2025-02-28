@@ -32,15 +32,19 @@ var rootCmd = &cobra.Command{
 		verbose := cmd.Flag("verbose").Value.String() == "true"
 		uMap := src.HandleUrl(url, bool(verbose))
 
-		for _, value := range uMap {
-			if value.StatusCode >= 400 && value.StatusCode < 500 {
-				fmt.Print(Red)
+		for key, value := range uMap {
+			fmt.Println("On: ", key)
+			for i := range value {
+				fmt.Print("\t")
+				if value[i].StatusCode >= 400 && value[i].StatusCode < 500 {
+					fmt.Print(Red)
+				}
+				if value[i].StatusCode >= 200 && value[i].StatusCode < 300 {
+					fmt.Print(Green)
+				}
+				fmt.Println("Link Text: ", value[i].Link.Content, "Value: ", value[i].StatusCode)
+				fmt.Print(Reset)
 			}
-			if value.StatusCode >= 200 && value.StatusCode < 300 {
-				fmt.Print(Green)
-			}
-			fmt.Println("On ", value.Link.Url, "Link Text: ", value.Link.Content, "Value: ", value.StatusCode)
-			fmt.Print(Reset)
 		}
 	},
 }

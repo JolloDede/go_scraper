@@ -10,7 +10,7 @@ import (
 	"golang.org/x/net/html"
 )
 
-func HandleUrl(url string, recursiv bool) map[string]Searched {
+func HandleUrl(url string, recursiv bool) map[string][]Searched {
 	scraper := NewUrlScraper(url)
 
 	scraper.checkUrl(Link{Url: url, link: url})
@@ -23,7 +23,16 @@ func HandleUrl(url string, recursiv bool) map[string]Searched {
 		}
 	}
 
-	return scraper.searchedMap
+	r := make(map[string][]Searched, 0)
+
+	for key, val := range scraper.searchedMap {
+		if len(r[key]) == 0 {
+			r[key] = make([]Searched, 1)
+		}
+		r[key] = append(r[key], val)
+	}
+
+	return r
 }
 
 type Link struct {
