@@ -27,7 +27,7 @@ func HandleUrl(url string, recursiv bool) map[string][]Searched {
 
 	for key, val := range scraper.searchedMap {
 		if len(r[key]) == 0 {
-			r[key] = make([]Searched, 1)
+			r[key] = make([]Searched, 0)
 		}
 		r[key] = append(r[key], val)
 	}
