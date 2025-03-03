@@ -3,11 +3,16 @@
 # Build the application
 # all: build test
 
-# build:
-# 	@echo "Building..."
+build:
+	@echo "Building..."
 	
 	
-# 	@go build -o main.exe cmd/api/main.go
+	@go build -o bin/main.exe main.go
+
+install:
+	@echo "Installing..."
+
+	@go install
 
 # Run the application
 run:
