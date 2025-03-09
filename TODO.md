@@ -6,3 +6,4 @@
   - [X] save the value of link content
 - [X] Output Report
 - [X] Concurrent
+- [ ] Channels
