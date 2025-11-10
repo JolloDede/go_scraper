@@ -1,43 +1,7 @@
 # Simple Makefile for a Go project
 
-# Build the application
-# all: build test
-
-build:
-	@echo "Building..."
-	
-	
-	@go build -o bin/main.exe main.go
-
-install:
-	@echo "Installing..."
-
-	@go install
+default: run
 
 # Run the application
 run:
-	@go run ./main.go
-
-# Test the application
-# test:
-# 	@echo "Testing..." $(ARG)
-# 	@go test ./... -v
-
-# # Clean the binary
-# clean:
-# 	@echo "Cleaning..."
-# 	@rm -f main
-
-# # Live Reload
-# watch:
-# 	@powershell -ExecutionPolicy Bypass -Command "if (Get-Command air -ErrorAction SilentlyContinue) { \
-# 		air; \
-# 		Write-Output 'Watching...'; \
-# 	} else { \
-# 		Write-Output 'Installing air...'; \
-# 		go install github.com/air-verse/air@latest; \
-# 		air; \
-# 		Write-Output 'Watching...'; \
-# 	}"
-
-.PHONY: all build run test clean watch
+	go run ./main.go

@@ -1,4 +1,4 @@
-module github.com/JolloDede/go_scraper
+module github.com/JolloDede/go-crawler
 
 go 1.24.0
 
