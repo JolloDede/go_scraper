@@ -2,5 +2,4 @@ module github.com/JolloDede/go-crawler
 
 go 1.24.0
 
-require (
-)
+require golang.org/x/net v0.46.0 // indirect
