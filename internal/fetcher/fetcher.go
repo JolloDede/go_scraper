@@ -6,9 +6,9 @@ import (
 	"golang.org/x/net/html"
 )
 
-func Fetch(uri string) (*http.Response, []string, error) {
+func Fetch(url string) (*http.Response, []string, error) {
 	urls := make([]string, 0)
-	resp, err := http.Get(uri)
+	resp, err := http.Get(url)
 
 	if err != nil {
 		return nil, nil, err
