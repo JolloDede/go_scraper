@@ -1,4 +1,4 @@
-# GoScraper
+# GoCrawler
 
 Checking a webpage for dead links.
 
@@ -18,7 +18,7 @@ An in-depth paragraph about your project and overview of use. -->
 Download the repo.
 
 ```bash
-git clone https://github.com/JolloDede/go_scraper.git
+git clone https://github.com/JolloDede/go-crawler.git
 ```
 
 Install the CLI tool
@@ -32,7 +32,7 @@ make install
 This tool has been tested by running it against [this](https://scrape-me.dreamsofcode.io/) website.
 
 ```bash
-go run main.go -u https://scrape-me.dreamsofcode.io/ -v
+go run main.go -u https://scrape-me.dreamsofcode.io/
 ```
 
 ## Help

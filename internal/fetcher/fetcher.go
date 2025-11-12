@@ -24,8 +24,6 @@ func Fetch(url string) (*http.Response, []string, error) {
 		if n.Type == html.ElementNode && n.Data == "a" {
 			for i := 0; i < len(n.Attr); i++ {
 				if n.Attr[i].Key == "href" {
-					// convert relative url to full
-
 					urls = append(urls, n.Attr[i].Val)
 				}
 			}

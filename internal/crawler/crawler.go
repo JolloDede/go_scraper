@@ -9,18 +9,22 @@ import (
 	"github.com/JolloDede/go-crawler/internal/fetcher"
 )
 
-func Crawl(url string, depth uint64) {
+func Crawl(url string, depth uint64) map[string]int {
 	fetchedUrls := make(map[string]int)
 	var mu sync.Mutex
-	baseUrl, err := uri.ParseRequestURI(url)
+	var wg sync.WaitGroup
 
-	if err != nil {
-		fmt.Println(err)
-		return
+	if !urlIsAbsolut(url) {
+		println("Url is not absolut")
+		return nil
 	}
+
+	baseUrl, _ := uri.Parse(url)
 
 	var crawl func(string, uint64)
 	crawl = func(currentUrl string, depth uint64) {
+		defer wg.Done()
+
 		if depth == 0 {
 			return
 		}
@@ -36,20 +40,39 @@ func Crawl(url string, depth uint64) {
 		mu.Unlock()
 
 		for _, u := range urls {
-			newUrl, err := uri.ParseRequestURI(u)
-
-			if err != nil {
-				newUrl, err = baseUrl.Parse(u)
-
-				if err != nil {
-					fmt.Println("Couldnt call ", u)
-					return
-				}
+			newUrl, _ := uri.Parse(u)
+			if !urlIsAbsolut(u) {
+				newUrl, _ = baseUrl.Parse(u)
 			}
 
-			crawl(newUrl.String(), depth-1)
+			mu.Lock()
+			_, ok := fetchedUrls[newUrl.String()]
+			mu.Unlock()
+			if ok {
+				return
+			}
+
+			newDepth := depth - 1
+			if baseUrl.Host != newUrl.Host {
+				newDepth = 1
+			}
+			wg.Add(1)
+			go crawl(newUrl.String(), newDepth)
 		}
 	}
+	wg.Add(1)
+	crawl(url, depth)
+	wg.Wait()
 
-	crawl(baseUrl.String(), depth)
+	return fetchedUrls
+}
+
+func urlIsAbsolut(u string) bool {
+	newUrl, err := uri.ParseRequestURI(u)
+
+	if err != nil {
+		return false
+	}
+
+	return newUrl.IsAbs()
 }
